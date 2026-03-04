@@ -30,6 +30,7 @@ export interface Diary {
   date: string; // 日记日期 (YYYY-MM-DD)
   mood?: string;
   weather?: string;
+  images?: string[]; // 图片 URL 数组
   aiSummary?: string;
   aiEncouragement?: string;
   createdAt: Timestamp;
@@ -45,7 +46,8 @@ export const createDiary = async (
   content: string,
   date?: string,
   mood?: string,
-  weather?: string
+  weather?: string,
+  images?: string[]
 ) => {
   const data: Record<string, any> = {
     userId,
@@ -58,6 +60,7 @@ export const createDiary = async (
   // 只添加已选择的字段（Firestore 不支持 undefined）
   if (mood) data.mood = mood;
   if (weather) data.weather = weather;
+  if (images && images.length > 0) data.images = images;
 
   const docRef = await addDoc(collection(db, COLLECTION_NAME), data);
   return docRef.id;

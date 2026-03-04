@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { TagSelector, type MoodType, type WeatherType } from '@/components/ui/TagSelector';
-import { ArrowLeft, Save, Loader2, Calendar } from 'lucide-react';
+import { ImageUpload } from '@/components/ImageUpload/ImageUpload';
+import { ArrowLeft, Save, Loader2, Calendar, Image as ImageIcon } from 'lucide-react';
 
 export default function EditDiaryPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function EditDiaryPage() {
   const [date, setDate] = useState('');
   const [mood, setMood] = useState<MoodType | undefined>();
   const [weather, setWeather] = useState<WeatherType | undefined>();
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -45,6 +47,7 @@ export default function EditDiaryPage() {
         }
         setMood(diary.mood as MoodType | undefined);
         setWeather(diary.weather as WeatherType | undefined);
+        setImages(diary.images || []);
       }
     } catch (error) {
       console.error('Failed to load diary:', error);
@@ -64,6 +67,7 @@ export default function EditDiaryPage() {
         date,
         mood,
         weather,
+        images,
       });
       router.push(`/diary/${params.id}`);
     } catch (error) {
@@ -138,6 +142,14 @@ export default function EditDiaryPage() {
         />
         <div className="px-6 py-3 bg-amber-50 border-t border-amber-100 text-sm text-amber-600">
           {content.length} 字
+        </div>
+        {/* 图片上传 */}
+        <div className="p-6 border-t border-amber-100">
+          <div className="flex items-center space-x-2 mb-3">
+            <ImageIcon className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-medium text-amber-700">添加图片</span>
+          </div>
+          <ImageUpload images={images} onImagesChange={setImages} maxImages={9} />
         </div>
       </div>
     </div>

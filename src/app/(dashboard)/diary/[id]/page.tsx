@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getDiaryById, updateDiary, deleteDiary, type Diary } from '@/lib/firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { MOODS, WEATHERS, type MoodType, type WeatherType } from '@/components/ui/TagSelector';
-import { ArrowLeft, Edit, Trash2, Sparkles, Heart, Lightbulb, Loader2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Sparkles, Heart, Lightbulb, Loader2, RotateCcw, Image as ImageIcon } from 'lucide-react';
 
 function getMoodEmoji(mood: string): string {
   const m = MOODS.find(item => item.id === mood);
@@ -232,6 +232,33 @@ export default function DiaryDetailPage() {
               </p>
             ))}
           </div>
+
+          {/* 图片 */}
+          {diary.images && diary.images.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center space-x-2 mb-3">
+                <ImageIcon className="w-4 h-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-700">日记图片</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {diary.images.map((url, index) => (
+                  <a
+                    key={index}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="aspect-square rounded-lg overflow-hidden border border-amber-100 hover:shadow-md transition-shadow"
+                  >
+                    <img
+                      src={url}
+                      alt={`日记图片 ${index + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </article>
 

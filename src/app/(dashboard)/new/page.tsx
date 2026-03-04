@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { TagSelector, type MoodType, type WeatherType } from '@/components/ui/TagSelector';
+import { ImageUpload } from '@/components/ImageUpload/ImageUpload';
 import { ArrowLeft, Save, Sparkles, Heart, Loader2, Calendar, Image as ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,6 +28,7 @@ export default function NewDiaryPage({ searchParams }: { searchParams: Promise<{
   })());
   const [mood, setMood] = useState<MoodType | undefined>();
   const [weather, setWeather] = useState<WeatherType | undefined>();
+  const [images, setImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
@@ -38,7 +40,7 @@ export default function NewDiaryPage({ searchParams }: { searchParams: Promise<{
 
     setSaving(true);
     try {
-      const id = await createDiary(user.uid, title, content, date, mood, weather);
+      const id = await createDiary(user.uid, title, content, date, mood, weather, images);
       router.push(`/diary/${id}`);
     } catch (error) {
       console.error('Failed to save diary:', error);
@@ -161,6 +163,14 @@ export default function NewDiaryPage({ searchParams }: { searchParams: Promise<{
         />
         <div className="px-6 py-3 bg-amber-50 border-t border-amber-100 text-sm text-amber-600">
           {content.length} 字 • 自动保存草稿
+        </div>
+        {/* 图片上传 */}
+        <div className="p-6 border-t border-amber-100">
+          <div className="flex items-center space-x-2 mb-3">
+            <ImageIcon className="w-4 h-4 text-amber-600" />
+            <span className="text-sm font-medium text-amber-700">添加图片</span>
+          </div>
+          <ImageUpload images={images} onImagesChange={setImages} maxImages={9} />
         </div>
       </div>
 
