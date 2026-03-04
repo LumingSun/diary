@@ -31,12 +31,21 @@ export interface Diary {
 const COLLECTION_NAME = 'diaries';
 
 // 创建日记
-export const createDiary = async (userId: string, title: string, content: string, date?: string) => {
+export const createDiary = async (
+  userId: string, 
+  title: string, 
+  content: string, 
+  date?: string,
+  mood?: string,
+  weather?: string
+) => {
   const docRef = await addDoc(collection(db, COLLECTION_NAME), {
     userId,
     title,
     content,
-    date: date || new Date().toISOString().split('T')[0], // 默认今天
+    date: date || new Date().toISOString().split('T')[0],
+    mood,
+    weather,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });

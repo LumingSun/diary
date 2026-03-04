@@ -5,7 +5,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getUserDiaries, type Diary } from '@/lib/firebase/firestore';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { MOODS, WEATHERS } from '@/components/ui/TagSelector';
 import { Edit, Plus, Calendar, Sparkles } from 'lucide-react';
+
+function getMoodEmoji(mood: string): string {
+  const m = MOODS.find(item => item.id === mood);
+  return m?.emoji || '😊';
+}
+
+function getWeatherEmoji(weather: string): string {
+  const w = WEATHERS.find(item => item.id === weather);
+  return w?.emoji || '☀️';
+}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -111,9 +122,21 @@ export default function HomePage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-amber-900 mb-2 truncate">
-                      {diary.title || '无题'}
-                    </h3>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="font-semibold text-amber-900 truncate">
+                        {diary.title || '无题'}
+                      </h3>
+                      {diary.mood && (
+                        <span className="flex-shrink-0 text-sm">
+                          {getMoodEmoji(diary.mood)}
+                        </span>
+                      )}
+                      {diary.weather && (
+                        <span className="flex-shrink-0 text-sm">
+                          {getWeatherEmoji(diary.weather)}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-amber-600 text-sm line-clamp-2">
                       {diary.content.replace(/[#*_~`]/g, '')}
                     </p>

@@ -8,6 +8,7 @@ import { getDiaryById, updateDiary } from '@/lib/firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { TagSelector, type MoodType, type WeatherType } from '@/components/ui/TagSelector';
 import { ArrowLeft, Save, Loader2, Calendar } from 'lucide-react';
 
 export default function EditDiaryPage() {
@@ -17,6 +18,8 @@ export default function EditDiaryPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [date, setDate] = useState('');
+  const [mood, setMood] = useState<MoodType | undefined>();
+  const [weather, setWeather] = useState<WeatherType | undefined>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +36,8 @@ export default function EditDiaryPage() {
         setTitle(diary.title);
         setContent(diary.content);
         setDate(diary.date || new Date().toISOString().split('T')[0]);
+        setMood(diary.mood as MoodType | undefined);
+        setWeather(diary.weather as WeatherType | undefined);
       }
     } catch (error) {
       console.error('Failed to load diary:', error);
@@ -50,6 +55,8 @@ export default function EditDiaryPage() {
         title,
         content,
         date,
+        mood,
+        weather,
       });
       router.push(`/diary/${params.id}`);
     } catch (error) {
@@ -88,17 +95,25 @@ export default function EditDiaryPage() {
 
       {/* 编辑器 */}
       <div className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden">
-        <div className="p-4 border-b border-amber-100 bg-amber-50/50 flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-amber-600" />
-            <label className="text-sm text-amber-700 font-medium">日期</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="text-sm border border-amber-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
-            />
+        <div className="p-4 border-b border-amber-100 bg-amber-50/50 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-amber-600" />
+              <label className="text-sm text-amber-700 font-medium">日期</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="text-sm border border-amber-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+              />
+            </div>
           </div>
+          <TagSelector
+            selectedMood={mood}
+            selectedWeather={weather}
+            onMoodChange={setMood}
+            onWeatherChange={setWeather}
+          />
         </div>
         <div className="p-6 border-b border-amber-100">
           <Input

@@ -6,7 +6,18 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDiaryById, updateDiary, deleteDiary, type Diary } from '@/lib/firebase/firestore';
 import { Button } from '@/components/ui/Button';
+import { MOODS, WEATHERS, type MoodType, type WeatherType } from '@/components/ui/TagSelector';
 import { ArrowLeft, Edit, Trash2, Sparkles, Heart, Lightbulb, Loader2, RotateCcw } from 'lucide-react';
+
+function getMoodEmoji(mood: string): string {
+  const m = MOODS.find(item => item.id === mood);
+  return m?.emoji || '😊';
+}
+
+function getWeatherEmoji(weather: string): string {
+  const w = WEATHERS.find(item => item.id === weather);
+  return w?.emoji || '☀️';
+}
 
 export default function DiaryDetailPage() {
   const params = useParams();
@@ -184,12 +195,19 @@ export default function DiaryDetailPage() {
         <div className="p-8">
           {/* 元信息 */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <time className="text-lg font-medium text-amber-700">
                 {diary.date}
               </time>
               {diary.mood && (
-                <span className="text-sm text-amber-500">{diary.mood}</span>
+                <span className="px-2 py-1 bg-amber-100 rounded-md text-sm">
+                  {getMoodEmoji(diary.mood)}
+                </span>
+              )}
+              {diary.weather && (
+                <span className="px-2 py-1 bg-blue-100 rounded-md text-sm">
+                  {getWeatherEmoji(diary.weather)}
+                </span>
               )}
             </div>
             {diary.updatedAt && diary.updatedAt !== diary.createdAt && (
