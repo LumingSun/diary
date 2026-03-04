@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDiaryById, updateDiary, deleteDiary, type Diary } from '@/lib/firebase/firestore';
-import { summarizeDiary, generateEncouragement, generateInspirationQuestions } from '@/lib/ai/deepseek';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, Edit, Trash2, Sparkles, Heart, Lightbulb, Loader2, RotateCcw } from 'lucide-react';
 
@@ -38,19 +37,36 @@ export default function DiaryDetailPage() {
 
   const handleAIProcess = async () => {
     if (!diary) return;
-    
+
     setProcessing(true);
     try {
-      const [summary, encouragement] = await Promise.all([
-        summarizeDiary(diary.content),
-        generateEncouragement(diary.content),
+      const [summaryRes, encouragementRes] = await Promise.all([
+        fetch('/api/ai/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: diary.content }),
+        }),
+        fetch('/api/ai/encourage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: diary.content }),
+        }),
       ]);
-      
+
+      if (!summaryRes.ok || !encouragementRes.ok) {
+        throw new Error('AI 服务请求失败');
+      }
+
+      const [{ summary }, { encouragement }] = await Promise.all([
+        summaryRes.json(),
+        encouragementRes.json(),
+      ]);
+
       await updateDiary(diary.id, {
         aiSummary: summary,
         aiEncouragement: encouragement,
       });
-      
+
       setDiary({
         ...diary,
         aiSummary: summary,
@@ -67,7 +83,11 @@ export default function DiaryDetailPage() {
   const handleLoadQuestions = async () => {
     setProcessing(true);
     try {
-      const qs = await generateInspirationQuestions();
+      const res = await fetch('/api/ai/inspire', {
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error('获取灵感问题失败');
+      const { questions: qs } = await res.json();
       setQuestions(qs);
       setShowQuestions(true);
     } catch (error) {

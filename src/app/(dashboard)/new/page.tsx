@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createDiary, updateDiary, getDiaryById } from '@/lib/firebase/firestore';
-import { summarizeDiary, generateEncouragement } from '@/lib/ai/deepseek';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -38,15 +37,32 @@ export default function NewDiaryPage() {
 
   const handleAIProcess = async () => {
     if (!content.trim()) return;
-    
+
     setProcessing(true);
     try {
       // 并行调用 AI 接口
-      const [summary, encouragement] = await Promise.all([
-        summarizeDiary(content),
-        generateEncouragement(content),
+      const [summaryRes, encouragementRes] = await Promise.all([
+        fetch('/api/ai/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content }),
+        }),
+        fetch('/api/ai/encourage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content }),
+        }),
       ]);
-      
+
+      if (!summaryRes.ok || !encouragementRes.ok) {
+        throw new Error('AI 服务请求失败');
+      }
+
+      const [{ summary }, { encouragement }] = await Promise.all([
+        summaryRes.json(),
+        encouragementRes.json(),
+      ]);
+
       setAiSummary(summary);
       setAiEncouragement(encouragement);
     } catch (error) {
