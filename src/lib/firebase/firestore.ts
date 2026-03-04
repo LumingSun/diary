@@ -47,26 +47,35 @@ export const createDiary = async (
   mood?: string,
   weather?: string
 ) => {
-  const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+  const data: Record<string, any> = {
     userId,
     title,
     content,
     date: date || formatDateLocal(new Date()),
-    mood,
-    weather,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
-  });
+  };
+  // 只添加已选择的字段（Firestore 不支持 undefined）
+  if (mood) data.mood = mood;
+  if (weather) data.weather = weather;
+
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), data);
   return docRef.id;
 };
 
 // 更新日记
 export const updateDiary = async (id: string, data: Partial<Diary>) => {
   const docRef = doc(db, COLLECTION_NAME, id);
-  await updateDoc(docRef, {
-    ...data,
+  // 过滤掉 undefined 字段（Firestore 不支持 undefined）
+  const updateData: Record<string, any> = {
     updatedAt: Timestamp.now(),
+  };
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) {
+      updateData[key] = value;
+    }
   });
+  await updateDoc(docRef, updateData);
 };
 
 // 删除日记
