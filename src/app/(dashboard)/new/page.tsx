@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, use } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createDiary, updateDiary, getDiaryById } from '@/lib/firebase/firestore';
 import { Button } from '@/components/ui/Button';
@@ -11,12 +11,20 @@ import { TagSelector, type MoodType, type WeatherType } from '@/components/ui/Ta
 import { ArrowLeft, Save, Sparkles, Heart, Loader2, Calendar, Image as ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
-export default function NewDiaryPage() {
+export default function NewDiaryPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+  const resolvedSearchParams = use(searchParams);
   const { user } = useAuth();
   const router = useRouter();
+  const urlDate = resolvedSearchParams.date;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(urlDate || (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })());
   const [mood, setMood] = useState<MoodType | undefined>();
   const [weather, setWeather] = useState<WeatherType | undefined>();
   const [saving, setSaving] = useState(false);
@@ -121,6 +129,11 @@ export default function NewDiaryPage() {
                 onChange={(e) => setDate(e.target.value)}
                 className="text-sm border border-amber-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
               />
+              {urlDate && urlDate === date && (
+                <span className="text-xs text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                  补写日记
+                </span>
+              )}
             </div>
           </div>
           <TagSelector

@@ -14,6 +14,14 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
+// 格式化本地日期为 YYYY-MM-DD（避免时区问题）
+function formatDateLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export interface Diary {
   id: string;
   userId: string;
@@ -32,9 +40,9 @@ const COLLECTION_NAME = 'diaries';
 
 // 创建日记
 export const createDiary = async (
-  userId: string, 
-  title: string, 
-  content: string, 
+  userId: string,
+  title: string,
+  content: string,
   date?: string,
   mood?: string,
   weather?: string
@@ -43,7 +51,7 @@ export const createDiary = async (
     userId,
     title,
     content,
-    date: date || new Date().toISOString().split('T')[0],
+    date: date || formatDateLocal(new Date()),
     mood,
     weather,
     createdAt: Timestamp.now(),

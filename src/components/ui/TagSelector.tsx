@@ -157,6 +157,18 @@ export function TagSelector({
   );
 }
 
+// 获取情绪 emoji
+export function getMoodEmoji(mood?: string): string {
+  const m = MOODS.find(item => item.id === mood);
+  return m?.emoji || '😊';
+}
+
+// 获取天气 emoji
+export function getWeatherEmoji(weather?: string): string {
+  const w = WEATHERS.find(item => item.id === weather);
+  return w?.emoji || '☀️';
+}
+
 // 获取情绪的样式
 export function getMoodStyle(mood?: MoodType) {
   return MOODS.find(m => m.id === mood) || MOODS[6]; // 默认返回 neutral

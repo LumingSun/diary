@@ -3,25 +3,35 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserDiaries, type Diary } from '@/lib/firebase/firestore';
+import { calculateStreak, getMoodDistribution } from '@/lib/utils/dateUtils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { MOODS, WEATHERS } from '@/components/ui/TagSelector';
-import { Edit, Plus, Calendar, Sparkles } from 'lucide-react';
+import { MOODS, WEATHERS, getMoodEmoji, getWeatherEmoji } from '@/components/ui/TagSelector';
+import { OnThisDayCard } from '@/components/OnThisDay';
+import { MoodCalendar } from '@/components/MoodCalendar';
+import { TimelineView } from '@/components/Timeline';
+import { Edit, Plus, Calendar, Sparkles, Flame, TrendingUp, Smile } from 'lucide-react';
 
-function getMoodEmoji(mood: string): string {
-  const m = MOODS.find(item => item.id === mood);
-  return m?.emoji || '😊';
-}
-
-function getWeatherEmoji(weather: string): string {
-  const w = WEATHERS.find(item => item.id === weather);
-  return w?.emoji || '☀️';
+// 统计卡片组件
+function StatCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) {
+  return (
+    <div className={`bg-gradient-to-br ${color} rounded-xl p-4 text-white`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm opacity-90">{label}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
+        </div>
+        <Icon className="w-8 h-8 opacity-50" />
+      </div>
+    </div>
+  );
 }
 
 export default function HomePage() {
   const { user } = useAuth();
   const [diaries, setDiaries] = useState<Diary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
 
   useEffect(() => {
     if (user) {
@@ -40,6 +50,12 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
+  // 计算统计数据
+  const streak = calculateStreak(diaries);
+  const moodDistribution = getMoodDistribution(diaries);
+  const topMood = Object.entries(moodDistribution).sort((a, b) => b[1] - a[1])[0];
+  const topMoodData = topMood ? MOODS.find(m => m.id === topMood[0]) : null;
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '未知日期';
@@ -69,13 +85,59 @@ export default function HomePage() {
         <p className="text-amber-700 mb-6">
           记录生活中的每一个美好瞬间
         </p>
-        <Link href="/new">
-          <Button className="h-12 px-6 text-base">
-            <Plus className="w-5 h-5 mr-2" />
-            写一篇新日记
-          </Button>
-        </Link>
+        <div className="flex items-center justify-center space-x-3">
+          <Link href="/new">
+            <Button className="h-12 px-6 text-base">
+              <Plus className="w-5 h-5 mr-2" />
+              写一篇新日记
+            </Button>
+          </Link>
+          <Link href="/timeline">
+            <Button variant="outline" className="h-12 px-6 text-base">
+              <Calendar className="w-5 h-5 mr-2" />
+              时间轴
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* 那年今日 */}
+      <OnThisDayCard diaries={diaries} />
+
+      {/* 统计卡片 */}
+      {!loading && diaries.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            icon={Calendar}
+            label="总日记数"
+            value={diaries.length}
+            color="from-amber-400 to-orange-400"
+          />
+          <StatCard
+            icon={Flame}
+            label="连续写作"
+            value={`${streak}天`}
+            color="from-orange-400 to-red-400"
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="最近情绪"
+            value={topMoodData?.label || '-'}
+            color="from-green-400 to-emerald-400"
+          />
+          <StatCard
+            icon={Smile}
+            label="情绪种类"
+            value={Object.keys(moodDistribution).length}
+            color="from-blue-400 to-indigo-400"
+          />
+        </div>
+      )}
+
+      {/* 情绪日历 */}
+      {!loading && diaries.length > 0 && (
+        <MoodCalendar diaries={diaries} />
+      )}
 
       {/* 灵感提示 */}
       <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-6">
@@ -95,12 +157,36 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 日记列表 */}
+      {/* 日记列表/时间轴切换 */}
       <div>
-        <h2 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
-          <Calendar className="w-5 h-5 mr-2" />
-          我的日记
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-amber-900 flex items-center">
+            <Calendar className="w-5 h-5 mr-2" />
+            我的日记
+          </h2>
+          <div className="flex items-center space-x-2 bg-white rounded-lg border border-amber-200 p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-amber-100 text-amber-700 font-medium'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              列表
+            </button>
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                viewMode === 'timeline'
+                  ? 'bg-amber-100 text-amber-700 font-medium'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              时间轴
+            </button>
+          </div>
+        </div>
 
         {loading ? (
           <div className="text-center py-12 text-amber-600">加载中...</div>
@@ -112,7 +198,7 @@ export default function HomePage() {
               <Button variant="secondary">开始写第一篇吧</Button>
             </Link>
           </div>
-        ) : (
+        ) : viewMode === 'list' ? (
           <div className="grid gap-4">
             {diaries.map((diary) => (
               <Link
@@ -157,6 +243,10 @@ export default function HomePage() {
                 )}
               </Link>
             ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-6">
+            <TimelineView diaries={diaries} />
           </div>
         )}
       </div>

@@ -35,7 +35,14 @@ export default function EditDiaryPage() {
       if (diary) {
         setTitle(diary.title);
         setContent(diary.content);
-        setDate(diary.date || new Date().toISOString().split('T')[0]);
+        // 使用 diary.date 或本地日期
+        const dateStr = diary.date;
+        if (!dateStr) {
+          const now = new Date();
+          setDate(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
+        } else {
+          setDate(dateStr);
+        }
         setMood(diary.mood as MoodType | undefined);
         setWeather(diary.weather as WeatherType | undefined);
       }
