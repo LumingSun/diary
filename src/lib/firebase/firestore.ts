@@ -19,6 +19,7 @@ export interface Diary {
   userId: string;
   title: string;
   content: string;
+  date: string; // 日记日期 (YYYY-MM-DD)
   mood?: string;
   weather?: string;
   aiSummary?: string;
@@ -30,11 +31,12 @@ export interface Diary {
 const COLLECTION_NAME = 'diaries';
 
 // 创建日记
-export const createDiary = async (userId: string, title: string, content: string) => {
+export const createDiary = async (userId: string, title: string, content: string, date?: string) => {
   const docRef = await addDoc(collection(db, COLLECTION_NAME), {
     userId,
     title,
     content,
+    date: date || new Date().toISOString().split('T')[0], // 默认今天
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });
@@ -61,7 +63,7 @@ export const getUserDiaries = async (userId: string): Promise<Diary[]> => {
   const q = query(
     collection(db, COLLECTION_NAME),
     where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    orderBy('date', 'desc')
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => ({
@@ -84,14 +86,14 @@ export const searchDiaries = async (userId: string, keyword: string): Promise<Di
   const q = query(
     collection(db, COLLECTION_NAME),
     where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
+    orderBy('date', 'desc')
   );
   const snapshot = await getDocs(q);
   const diaries = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   } as Diary));
-  
+
   // 前端搜索（Firestore 不支持全文搜索）
   return diaries.filter(
     (diary) =>

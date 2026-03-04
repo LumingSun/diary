@@ -7,7 +7,7 @@ import { createDiary, updateDiary, getDiaryById } from '@/lib/firebase/firestore
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { ArrowLeft, Save, Sparkles, Heart, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Heart, Loader2, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewDiaryPage() {
@@ -15,6 +15,7 @@ export default function NewDiaryPage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
@@ -22,10 +23,10 @@ export default function NewDiaryPage() {
 
   const handleSave = async () => {
     if (!user || !content.trim()) return;
-    
+
     setSaving(true);
     try {
-      const id = await createDiary(user.uid, title, content);
+      const id = await createDiary(user.uid, title, content, date);
       router.push(`/diary/${id}`);
     } catch (error) {
       console.error('Failed to save diary:', error);
@@ -105,6 +106,18 @@ export default function NewDiaryPage() {
 
       {/* 编辑器 */}
       <div className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden">
+        <div className="p-4 border-b border-amber-100 bg-amber-50/50 flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4 text-amber-600" />
+            <label className="text-sm text-amber-700 font-medium">日期</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="text-sm border border-amber-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+            />
+          </div>
+        </div>
         <div className="p-6 border-b border-amber-100">
           <Input
             type="text"

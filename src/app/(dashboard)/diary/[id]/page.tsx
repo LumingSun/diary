@@ -184,9 +184,14 @@ export default function DiaryDetailPage() {
         <div className="p-8">
           {/* 元信息 */}
           <div className="flex items-center justify-between mb-6">
-            <time className="text-sm text-amber-500">
-              {formatDate(diary.createdAt)}
-            </time>
+            <div className="flex items-center space-x-4">
+              <time className="text-lg font-medium text-amber-700">
+                {diary.date}
+              </time>
+              {diary.mood && (
+                <span className="text-sm text-amber-500">{diary.mood}</span>
+              )}
+            </div>
             {diary.updatedAt && diary.updatedAt !== diary.createdAt && (
               <span className="text-xs text-amber-400">
                 最后编辑：{formatDate(diary.updatedAt)}
